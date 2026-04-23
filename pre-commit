@@ -1,0 +1,8 @@
+#!/bin/sh
+
+./vendor/bin/pint --test
+
+if [ $? -ne 0 ]; then
+  echo "❌ Code standards failed. Fix before commit."
+  exit 1
+fi
