@@ -15,7 +15,9 @@
                 @if(Auth::user()->role !== 'SuperAdmin')
                     <button class="btn btn-primary btn-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#createUrlModal">Create New URL</button>
                 @endif
-                <button class="btn btn-outline-primary btn-sm text-nowrap">Download</button>
+                <a href="{{ route('export.urls', ['filter' => $filter]) }}" class="btn btn-outline-primary btn-sm text-nowrap">
+                    <i class="bi bi-download"></i> Download CSV
+                </a>
             </div>
         </div>
         <div class="table-responsive">

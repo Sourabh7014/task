@@ -18,9 +18,9 @@ class ShortUrlController extends Controller
         $this->shortUrlService = $shortUrlService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $data = $this->dashboardService->getUrlList(10);
+        $data = $this->dashboardService->getUrlList(10, $request->query('filter', 'all'));
         return view('urls.index', $data);
     }
 

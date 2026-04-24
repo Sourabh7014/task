@@ -18,9 +18,9 @@ class InvitationController extends Controller
         $this->invitationService = $invitationService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $data = $this->dashboardService->getUserList(10);
+        $data = $this->dashboardService->getUserList(10, $request->query('filter', 'all'));
         return view('invitation.index', $data);
     }
 

@@ -6,7 +6,21 @@
         <div class="card p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="fw-bold m-0">All Short URLs</h3>
-                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm">Back to Dashboard</a>
+                <div class="d-flex gap-2 align-items-center">
+                    <form action="{{ route('urls.index') }}" method="GET" class="d-flex gap-2">
+                        <select name="filter" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="all" {{ ($filter ?? 'all') === 'all' ? 'selected' : '' }}>All Time</option>
+                            <option value="today" {{ ($filter ?? 'all') === 'today' ? 'selected' : '' }}>Today</option>
+                            <option value="last_week" {{ ($filter ?? 'all') === 'last_week' ? 'selected' : '' }}>Last Week</option>
+                            <option value="this_month" {{ ($filter ?? 'all') === 'this_month' ? 'selected' : '' }}>This Month</option>
+                            <option value="last_month" {{ ($filter ?? 'all') === 'last_month' ? 'selected' : '' }}>Last Month</option>
+                        </select>
+                    </form>
+                    <a href="{{ route('export.urls', ['filter' => $filter ?? 'all']) }}" class="btn btn-outline-primary btn-sm text-nowrap">
+                        <i class="bi bi-download"></i> Download CSV
+                    </a>
+                    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm">Back</a>
+                </div>
             </div>
 
             <div class="table-responsive">

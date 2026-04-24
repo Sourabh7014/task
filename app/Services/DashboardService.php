@@ -14,7 +14,7 @@ class DashboardService
     {
         $user = Auth::user();
 
-        $userQuery = $this->getUserQuery($user);
+        $userQuery = $this->getUserQuery($user, $filter);
         $totalUsers = $userQuery->count();
         $users = $userQuery->orderBy('id', 'desc')->limit(2)->get();
         $urlQuery = $this->getUrlQuery($user, $filter);
@@ -26,29 +26,29 @@ class DashboardService
         return compact('users', 'totalUsers', 'urls', 'totalUrls', 'filter', 'companies');
     }
 
-    public function getUserList($limit = 10)
+    public function getUserList($limit = 10, $filter = 'all')
     {
         $user = Auth::user();
-        $query = $this->getUserQuery($user);
+        $query = $this->getUserQuery($user, $filter);
         
         $totalUsers = $query->count();
         $users = $query->orderBy('id', 'desc')->limit($limit)->get();
 
-        return compact('users', 'totalUsers');
+        return compact('users', 'totalUsers', 'filter');
     }
 
-    public function getUrlList($limit = 10)
+    public function getUrlList($limit = 10, $filter = 'all')
     {
         $user = Auth::user();
-        $query = $this->getUrlQuery($user);
+        $query = $this->getUrlQuery($user, $filter);
         
         $totalUrls = $query->count();
         $urls = $query->orderBy('id', 'desc')->limit($limit)->get();
 
-        return compact('urls', 'totalUrls');
+        return compact('urls', 'totalUrls', 'filter');
     }
 
-    protected function getUserQuery($user)
+    public function getUserQuery($user, $filter = 'all')
     {
         $query = User::with('company');
 
@@ -65,16 +65,39 @@ class DashboardService
                       ->withSum('shortUrls', 'clicks');
                 }]);
         } elseif ($user->role === 'Admin') {
-            return $query->where('company_id', $user->company_id)
+            $query = $query->where('company_id', $user->company_id)
                          ->where('id', '!=', $user->id)
                          ->withCount('shortUrls')
                          ->withSum('shortUrls', 'clicks');
         } else {
-            return $query->where('id', $user->id);
+            $query = $query->where('id', $user->id);
         }
+
+        if ($filter !== 'all') {
+            $date = match($filter) {
+                'today' => Carbon::today(),
+                'last_week' => Carbon::now()->subWeek(),
+                'this_month' => Carbon::now()->startOfMonth(),
+                'last_month' => Carbon::now()->subMonth()->startOfMonth(),
+                default => null,
+            };
+
+            if ($date) {
+                if ($filter === 'last_month') {
+                    $query->whereBetween('created_at', [
+                        Carbon::now()->subMonth()->startOfMonth(),
+                        Carbon::now()->subMonth()->endOfMonth()
+                    ]);
+                } else {
+                    $query->where('created_at', '>=', $date);
+                }
+            }
+        }
+
+        return $query;
     }
 
-    protected function getUrlQuery($user, $filter = 'all')
+    public function getUrlQuery($user, $filter = 'all')
     {
         $query = ShortUrl::with(['user', 'company']);
 
