@@ -7,9 +7,14 @@
                 @elseif(Auth::user()->role === 'Admin') Team Members 
                 @else User List @endif
             </h5>
-            @if(Auth::user()->role !== 'Member')
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#inviteUserModal">Invite User</button>
-            @endif
+            <div class="d-flex gap-2">
+                @if(Auth::user()->role !== 'Member')
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#inviteUserModal">Invite User</button>
+                @endif
+                <a href="{{ route('export.users', ['filter' => $filter ?? 'all']) }}" class="btn btn-outline-primary btn-sm text-nowrap">
+                    <i class="bi bi-download"></i> Download CSV
+                </a>
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle">
