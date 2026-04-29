@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Admin;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
@@ -8,55 +8,45 @@ use Laravel\Sanctum\Sanctum;
 uses(RefreshDatabase::class);
 
 test('admin can login with correct credentials', function () {
-    $admin = Admin::factory()->create([
+    $admin = User::create([
+        'name' => 'Admin User',
+        'email' => 'admin@example.com',
         'password' => Hash::make('password'),
+        'role' => 'SuperAdmin',
     ]);
 
-    $response = $this->postJson('/admin/v1/auth/login', [
+    $response = $this->post('/login', [
         'email' => $admin->email,
         'password' => 'password',
     ]);
 
-    $response->assertStatus(200)
-        ->assertJsonStructure([
-            'status',
-            'auth_token',
-            'data' => [
-                'admin' => [
-                    'id',
-                    'name',
-                    'email',
-                    'created_at'
-                ],
-            ],
-        ]);
+    $response->assertRedirect('/dashboard');
+    $this->assertAuthenticatedAs($admin);
 });
 
 test('admin cannot login with incorrect password', function () {
-    $admin = Admin::factory()->create([
+    $admin = User::create([
+        'name' => 'Admin User',
+        'email' => 'admin2@example.com',
         'password' => Hash::make('password'),
+        'role' => 'SuperAdmin',
     ]);
 
-    $response = $this->postJson('/admin/v1/auth/login', [
+    $response = $this->post('/login', [
         'email' => $admin->email,
         'password' => 'wrong-password',
     ]);
 
-    $response->assertStatus(422)
-        ->assertJson([
-            'status' => false,
-            'message' => __('password_incorrect'),
-        ]);
+    $response->assertSessionHasErrors('email');
+    $this->assertGuest();
 });
 
 test('admin cannot login with unregistered email', function () {
-    $response = $this->postJson('/admin/v1/auth/login', [
+    $response = $this->post('/login', [
         'email' => 'nonexistent@example.com',
         'password' => 'password',
     ]);
 
-    $response->assertStatus(422)
-        ->assertJson([
-            'message' => __('email_not_registered'),
-        ]);
+    $response->assertSessionHasErrors('email');
+    $this->assertGuest();
 });
